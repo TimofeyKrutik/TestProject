@@ -28,16 +28,16 @@ func _physics_process(delta):
 	match state:
 		MOVE:
 			move_state()
-		#ATTACK:
-			#attack_state()
-		#ATTACK2:
-			#attack2_state()
+		ATTACK:
+			attack_state()
+		ATTACK2:
+			attack2_state()
 		#ATTACK3:
 			#attack3_state()
-		#BLOCK:
-			#block_state()
-		#SLIDE:
-			#slide_state()
+		BLOCK:
+			block_state()
+		SLIDE:
+			slide_state()
 	
 	
 	# Add the gravity.
@@ -45,12 +45,12 @@ func _physics_process(delta):
 		velocity.y += gravity * delta
 	
 	if velocity.y > 0:
-		anim.play("Fall")
+		animPlayer.play("Fall")
 	
 	if health <= 0:
 		health = 0
-		#animPlayer.play("Death")
-		#await animPlayer.animation_finished
+		animPlayer.play("Death")
+		await animPlayer.animation_finished
 		queue_free()
 		get_tree().change_scene_to_file("res://menu.tscn")
 	
@@ -62,13 +62,13 @@ func move_state ():
 		velocity.x = direction * SPEED * run_speed
 		if velocity.y == 0:
 			if run_speed == 1:
-				$AnimatedSprite2D.play("Walk")
+				animPlayer.play("Walk")
 			else:
-				$AnimatedSprite2D.play("Run")
+				animPlayer.play("Run")
 	else:
 		velocity.x = move_toward(velocity.x, 0, SPEED)
 		if velocity.y == 0:
-			anim.play("Idle")
+			animPlayer.play("Idle")
 	if direction == -1:
 		anim.flip_h = true
 		
@@ -79,8 +79,41 @@ func move_state ():
 	else:
 		run_speed = 1
 	
+	if Input.is_action_just_pressed("block"):
+		if velocity.x == 0:
+			state = BLOCK
+		else:
+			state = SLIDE
+	if Input.is_action_just_pressed("Attack"):
+		state = ATTACK
 	
 	
+func block_state ():
+	velocity.x = 0
+	animPlayer.play("BLOCK")
+	if Input.is_action_just_released("block"):
+		state = MOVE
 	
+func slide_state():
+	animPlayer.play("Slide")
+	await animPlayer.play("Slide")
+	state = MOVE
+		
+func attack_state():
+	if Input.is_action_just_pressed("attack") and combo == true:
+		state = ATTACK2
+	velocity.x = 0
+	animPlayer.play("Attack")
+	await animPlayer.animation_finished
+	state = MOVE
+
+func attack2_state():
+	animPlayer.play("Attack2")
+	await animPlayer.animation_finished
+	state = MOVE
+
+func combo1 ():
+	combo = true
+	await animPlayer.animation_finished
+	combo = false
 	
-	move_and_slide()
